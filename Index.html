@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achilles Recovery Program</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide-react/0.263.1/lucide-react.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQWNoaWxsZXMgUmVjb3ZlcnkiLCJzaG9ydF9uYW1lIjoiUmVjb3ZlcnkiLCJzdGFydF91cmwiOiIvIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzJkNjNlZCIsInRoZW1lX2NvbG9yIjoiIzJkNjNlZCIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSXlOQ0VpSUdobGFXZG9kRDBpTWpRaElqNEtha0JqZEhCaGRHZ2dSaUE0VERFMUxETXNNVEVzTkZvdE5pdzFMRFF6TjJnekxtRXhMakVnTkRBd0lEQXdNVFE0T1M0Mklqd3ZjR0YwYUQ0OEwzTjJaejQ9Iiwic2l6ZXMiOiIyNHgyNCIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: white;
+        }
+        @media (max-width: 480px) {
+            .app-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+```
+<script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    const { Play, Pause, RotateCcw, Calendar, Timer } = lucideReact;
+
+    const AchillesRecoveryApp = () => {
+        const [currentWeek, setCurrentWeek] = useState(1);
+        const [currentDay, setCurrentDay] = useState(0); // 0=Tue, 1=Wed, 2=Thu, 3=Fri, 4=Sat
+        const [isRunning, setIsRunning] = useState(false);
+        const [currentSegment, setCurrentSegment] = useState(0);
+        const [timeRemaining, setTimeRemaining] = useState(0);
+        const [sessionComplete, setSessionComplete] = useState(false);
+        
+        const intervalRef = useRef(null);
+
+        const days = ['Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        // Program data - each week contains 5 days of workouts
+        const program = {
+            1: [
+                [{ type: 'walk', duration: 300 }, ...Array(3).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(4).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(5).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(6).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(7).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }]
+            ],
+            2: [
+                [{ type: 'walk', duration: 300 }, ...Array(8).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(9).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(10).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(11).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(12).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }]
+            ],
+            3: [
+                [{ type: 'walk', duration: 300 }, ...Array(13).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(14).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(15).fill([{ type: 'run', duration: 60 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(3).fill([{ type: 'run', duration: 120 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(4).fill([{ type: 'run', duration: 120 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }]
+            ],
+            4: [
+                [{ type: 'walk', duration: 300 }, ...Array(5).fill([{ type: 'run', duration: 120 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(6).fill([{ type: 'run', duration: 120 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(7).fill([{ type: 'run', duration: 120 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(8).fill([{ type: 'run', duration: 120 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(9).fill([{ type: 'run', duration: 120 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }]
+            ],
+            5: [
+                [{ type: 'walk', duration: 300 }, ...Array(10).fill([{ type: 'run', duration: 120 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(3).fill([{ type: 'run', duration: 180 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(4).fill([{ type: 'run', duration: 180 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(5).fill([{ type: 'run', duration: 180 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(6).fill([{ type: 'run', duration: 180 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }]
+            ],
+            6: [
+                [{ type: 'walk', duration: 300 }, ...Array(7).fill([{ type: 'run', duration: 180 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(8).fill([{ type: 'run', duration: 180 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(2).fill([{ type: 'run', duration: 240 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(3).fill([{ type: 'run', duration: 240 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(4).fill([{ type: 'run', duration: 240 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }]
+            ],
+            7: [
+                [{ type: 'walk', duration: 300 }, ...Array(5).fill([{ type: 'run', duration: 240 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(6).fill([{ type: 'run', duration: 240 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, { type: 'run', duration: 540 }, { type: 'walk', duration: 60 }, { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(2).fill([{ type: 'run', duration: 540 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(3).fill([{ type: 'run', duration: 540 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }]
+            ],
+            8: [
+                [{ type: 'walk', duration: 300 }, { type: 'run', duration: 840 }, { type: 'walk', duration: 60 }, { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, ...Array(2).fill([{ type: 'run', duration: 840 }, { type: 'walk', duration: 60 }]).flat(), { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, { type: 'run', duration: 1200 }, { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, { type: 'run', duration: 1500 }, { type: 'walk', duration: 300 }],
+                [{ type: 'walk', duration: 300 }, { type: 'run', duration: 1800 }, { type: 'walk', duration: 300 }]
+            ]
+        };
+
+        const getCurrentWorkout = () => {
+            return program[currentWeek]?.[currentDay] || [];
+        };
+
+        const formatTime = (seconds) => {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        };
+
+        const playNotification = () => {
+            // Create a simple beep sound using Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.log('Audio notification not available');
+            }
+        };
+
+        const startTimer = () => {
+            const workout = getCurrentWorkout();
+            if (workout.length === 0) return;
+
+            setIsRunning(true);
+            setSessionComplete(false);
+            
+            if (currentSegment === 0 && timeRemaining === 0) {
+                setTimeRemaining(workout[0].duration);
+            }
+        };
+
+        const pauseTimer = () => {
+            setIsRunning(false);
+        };
+
+        const resetTimer = () => {
+            setIsRunning(false);
+            setCurrentSegment(0);
+            setSessionComplete(false);
+            const workout = getCurrentWorkout();
+            if (workout.length > 0) {
+                setTimeRemaining(workout[0].duration);
+            }
+        };
+
+        const nextSegment = () => {
+            const workout = getCurrentWorkout();
+            const nextSegmentIndex = currentSegment + 1;
+            
+            if (nextSegmentIndex >= workout.length) {
+                setIsRunning(false);
+                setSessionComplete(true);
+                playNotification();
+                return;
+            }
+            
+            setCurrentSegment(nextSegmentIndex);
+            setTimeRemaining(workout[nextSegmentIndex].duration);
+            playNotification();
+        };
+
+        useEffect(() => {
+            if (isRunning && timeRemaining > 0) {
+                intervalRef.current = setInterval(() => {
+                    setTimeRemaining(prev => {
+                        if (prev <= 1) {
+                            nextSegment();
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+            } else {
+                clearInterval(intervalRef.current);
+            }
+
+            return () => clearInterval(intervalRef.current);
+        }, [isRunning, timeRemaining, currentSegment]);
+
+        // Initialize timer when workout changes (but don't reset if just paused)
+        useEffect(() => {
+            if (!isRunning) {  // Only reset if not currently running
+                setCurrentSegment(0);
+                setSessionComplete(false);
+                const workout = getCurrentWorkout();
+                if (workout.length > 0) {
+                    setTimeRemaining(workout[0].duration);
+                }
+            }
+        }, [currentWeek, currentDay]);
+
+        const workout = getCurrentWorkout();
+        const currentSegmentData = workout[currentSegment];
+        const totalDuration = workout.reduce((sum, segment) => sum + segment.duration, 0);
+        const completedDuration = workout.slice(0, currentSegment).reduce((sum, segment) => sum + segment.duration, 0);
+        const progress = totalDuration > 0 ? ((completedDuration + (currentSegmentData?.duration - timeRemaining)) / totalDuration) * 100 : 0;
+
+        return React.createElement('div', { className: 'app-container bg-white min-h-screen' },
+            // Header
+            React.createElement('div', { className: 'bg-blue-600 text-white p-4' },
+                React.createElement('h1', { className: 'text-xl font-bold text-center' }, 'Achilles Recovery Program'),
+                React.createElement('div', { className: 'flex justify-center items-center mt-2 space-x-4' },
+                    React.createElement('div', { className: 'flex items-center' },
+                        React.createElement(Calendar, { className: 'w-4 h-4 mr-1' }),
+                        React.createElement('span', { className: 'text-sm' }, `Week ${currentWeek}`)
+                    ),
+                    React.createElement('div', { className: 'flex items-center' },
+                        React.createElement(Timer, { className: 'w-4 h-4 mr-1' }),
+                        React.createElement('span', { className: 'text-sm' }, days[currentDay])
+                    )
+                )
+            ),
+
+            // Week/Day Selector
+            React.createElement('div', { className: 'p-4 bg-gray-50' },
+                React.createElement('div', { className: 'mb-4' },
+                    React.createElement('label', { className: 'block text-sm font-medium text-gray-700 mb-2' }, 'Week'),
+                    React.createElement('select', {
+                        value: currentWeek,
+                        onChange: (e) => setCurrentWeek(Number(e.target.value)),
+                        className: 'w-full p-2 border border-gray-300 rounded-md'
+                    }, [1,2,3,4,5,6,7,8].map(week => 
+                        React.createElement('option', { key: week, value: week }, `Week ${week}`)
+                    ))
+                ),
+                React.createElement('div', { className: 'mb-4' },
+                    React.createElement('label', { className: 'block text-sm font-medium text-gray-700 mb-2' }, 'Day'),
+                    React.createElement('select', {
+                        value: currentDay,
+                        onChange: (e) => setCurrentDay(Number(e.target.value)),
+                        className: 'w-full p-2 border border-gray-300 rounded-md'
+                    }, days.map((day, index) => 
+                        React.createElement('option', { key: index, value: index }, day)
+                    ))
+                )
+            ),
+
+            // Current Activity Display
+            React.createElement('div', { className: 'p-6' },
+                sessionComplete ? 
+                    React.createElement('div', { className: 'text-center' },
+                        React.createElement('div', { className: 'text-6xl mb-4' }, '🎉'),
+                        React.createElement('h2', { className: 'text-2xl font-bold text-green-600 mb-2' }, 'Session Complete!'),
+                        React.createElement('p', { className: 'text-gray-600' }, "Great job on completing today's workout!")
+                    ) :
+                    React.createElement(React.Fragment, null,
+                        // Current Activity
+                        React.createElement('div', {
+                            className: `text-center p-8 rounded-lg mb-6 ${
+                                currentSegmentData?.type === 'run' 
+                                    ? 'bg-red-100 border-4 border-red-300' 
+                                    : 'bg-green-100 border-4 border-green-300'
+                            }`
+                        },
+                            React.createElement('div', {
+                                className: `text-6xl font-bold mb-2 ${
+                                    currentSegmentData?.type === 'run' ? 'text-red-600' : 'text-green-600'
+                                }`
+                            }, formatTime(timeRemaining)),
+                            React.createElement('div', {
+                                className: `text-2xl font-bold uppercase ${
+                                    currentSegmentData?.type === 'run' ? 'text-red-600' : 'text-green-600'
+                                }`
+                            }, currentSegmentData?.type === 'run' ? '🏃‍♂️ RUN' : '🚶‍♂️ WALK')
+                        ),
+
+                        // Progress Bar
+                        React.createElement('div', { className: 'mb-6' },
+                            React.createElement('div', { className: 'flex justify-between text-sm text-gray-600 mb-1' },
+                                React.createElement('span', null, 'Progress'),
+                                React.createElement('span', null, `${Math.round(progress)}%`)
+                            ),
+                            React.createElement('div', { className: 'w-full bg-gray-200 rounded-full h-3' },
+                                React.createElement('div', {
+                                    className: 'bg-blue-600 h-3 rounded-full transition-all duration-300',
+                                    style: { width: `${progress}%` }
+                                })
+                            ),
+                            React.createElement('div', { className: 'flex justify-between text-xs text-gray-500 mt-1' },
+                                React.createElement('span', null, `Segment ${currentSegment + 1} of ${workout.length}`),
+                                React.createElement('span', null, `${formatTime(totalDuration - completedDuration - (currentSegmentData?.duration - timeRemaining))} remaining`)
+                            )
+                        ),
+
+                        // Controls
+                        React.createElement('div', { className: 'flex justify-center space-x-4 mb-6' },
+                            React.createElement('button', {
+                                onClick: isRunning ? pauseTimer : startTimer,
+                                className: `flex items-center px-6 py-3 rounded-lg font-semibold ${
+                                    isRunning 
+                                        ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                                        : 'bg-green-500 hover:bg-green-600 text-white'
+                                }`
+                            },
+                                React.createElement(isRunning ? Pause : Play, { className: 'w-5 h-5 mr-2' }),
+                                isRunning ? 'Pause' : 'Start'
+                            ),
+                            React.createElement('button', {
+                                onClick: resetTimer,
+                                className: 'flex items-center px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold'
+                            },
+                                React.createElement(RotateCcw, { className: 'w-5 h-5 mr-2' }),
+                                'Reset'
+                            )
+                        ),
+
+                        // Workout Overview
+                        React.createElement('div', { className: 'bg-gray-50 rounded-lg p-4' },
+                            React.createElement('h3', { className: 'font-semibold text-gray-700 mb-3' }, "Today's Workout Plan"),
+                            React.createElement('div', { className: 'space-y-1' },
+                                workout.map((segment, index) =>
+                                    React.createElement('div', {
+                                        key: index,
+                                        className: `flex justify-between items-center p-2 rounded text-sm ${
+                                            index === currentSegment 
+                                                ? 'bg-blue-100 border-l-4 border-blue-500 font-semibold' 
+                                                : index < currentSegment 
+                                                ? 'bg-green-50 text-green-700' 
+                                                : 'text-gray-600'
+                                        }`
+                                    },
+                                        React.createElement('span', null, segment.type === 'run' ? '🏃‍♂️ Run' : '🚶‍♂️ Walk'),
+                                        React.createElement('span', null, formatTime(segment.duration))
+                                    )
+                                )
+                            ),
+                            React.createElement('div', { className: 'mt-3 pt-3 border-t border-gray-200' },
+                                React.createElement('div', { className: 'flex justify-between font-semibold' },
+                                    React.createElement('span', null, 'Total Duration:'),
+                                    React.createElement('span', null, formatTime(totalDuration))
+                                )
+                            )
+                        )
+                    )
+            )
+        );
+    };
+
+    ReactDOM.render(React.createElement(AchillesRecoveryApp), document.getElementById('root'));
+</script>
+```
+
+</body>
+</html>
